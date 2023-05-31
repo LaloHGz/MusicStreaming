@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id_usuario            Int                     @id @unique @default(autoincrement())
+  nombre                String
+  apellido              String
+  correo_electronico    String
+  contrasena            String
+  fecha_nacimiento      DateTime
+  ciudad                String
+  pais                  String
+  listas_reproduccion   ListaReproduccion[] 
+  UsuarioArtistaSeguido UsuarioArtistaSeguido[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Artista {
+  id_artista            Int                     @id @unique @default(autoincrement())
+  nombre                String
+  genero_musical        String
+  fecha_inicio_carrera  DateTime
+  albumes               Album[] 
+  UsuarioArtistaSeguido UsuarioArtistaSeguido[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Album {
+  id_album          Int       @id @unique @default(autoincrement())
+  titulo            String
+  fecha_lanzamiento DateTime
+  id_artista        Int
+  artista           Artista   @relation(fields: [id_artista], references: [id_artista], onDelete: Cascade)
+  canciones         Cancion[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Cancion {
+  id_cancion          Int                   @id @unique @default(autoincrement())
+  titulo              String
+  duracion            Int
+  id_album            Int
+  album               Album                 @relation(fields: [id_album], references: [id_album], onDelete: Cascade)
+  listas_reproduccion ListaReproduccion[]
+  CancionSeleccionada CancionSeleccionada[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model ListaReproduccion {
+  id_lista_reproduccion Int                   @id @unique @default(autoincrement())
+  titulo                String
+  descripcion           String?
+  id_usuario            Int
+  usuario               Usuario               @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  canciones             Cancion[]
+  CancionSeleccionada   CancionSeleccionada[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model UsuarioArtistaSeguido {
+  usuario    Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  id_usuario Int
+  artista    Artista @relation(fields: [id_artista], references: [id_artista], onDelete: Cascade)
+  id_artista Int
+
+  @@id([id_usuario, id_artista])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model CancionSeleccionada {
+  cancion               Cancion           @relation(fields: [id_cancion], references: [id_cancion], onDelete: Cascade)
+  id_cancion            Int
+  lista_reproduccion    ListaReproduccion @relation(fields: [id_lista_reproduccion], references: [id_lista_reproduccion], onDelete: Cascade)
+  id_lista_reproduccion Int
+
+  @@id([id_cancion, id_lista_reproduccion])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
